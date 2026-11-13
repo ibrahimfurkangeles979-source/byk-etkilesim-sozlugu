@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BYK LAB · Etkileşim Sözlüğü</title>
+<style>
+  :root{
+    --bg:#0b0e14; --surface:#131722; --surface-2:#1b2130; --line:#272e3d;
+    --text:#e7ecf3; --muted:#9aa7bd; --faint:#6b7689;
+    --accent:#4f8cff; --accent-soft:#1d3353; --ok:#34d399; --warn:#fbbf24;
+    --radius:16px; --radius-sm:11px; --shadow:0 18px 50px -12px rgba(0,0,0,.6);
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  [data-theme="light"]{
+    --bg:#f3f5f9; --surface:#ffffff; --surface-2:#f0f3f8; --line:#e2e7f0;
+    --text:#111826; --muted:#5b6679; --faint:#8a94a6;
+    --accent:#2f6bff; --accent-soft:#e3ecff; --shadow:0 18px 50px -14px rgba(20,40,80,.22);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;line-height:1.55;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  a{color:var(--accent);text-decoration:none}
+
+  /* HEADER */
+  header{
+    position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 82%,transparent);
+    backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .bar{max-width:980px;margin:0 auto;padding:14px 18px;display:flex;align-items:center;gap:12px}
+  .logo{font-weight:800;letter-spacing:-.4px;font-size:18px;display:flex;align-items:center;gap:9px}
+  .logo .dot{width:11px;height:11px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+  .logo small{color:var(--muted);font-weight:600;font-size:12px}
+  .spacer{flex:1}
+  .iconbtn{
+    border:1px solid var(--line);background:var(--surface);color:var(--text);
+    width:40px;height:40px;border-radius:12px;cursor:pointer;font-size:17px;
+    display:grid;place-items:center;transition:.15s;
+  }
+  .iconbtn:active{transform:scale(.93)}
+
+  /* INTRO */
+  .intro{max-width:980px;margin:0 auto;padding:30px 18px 6px}
+  .intro h1{font-size:clamp(26px,6vw,40px);line-height:1.08;letter-spacing:-1px;margin:0 0 12px}
+  .intro p{color:var(--muted);max-width:60ch;margin:0 0 18px;font-size:15.5px}
+  .search{
+    display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);
+    border-radius:14px;padding:12px 15px;max-width:460px;
+  }
+  .search input{border:0;background:transparent;color:var(--text);font-size:16px;width:100%;outline:none;font-family:inherit}
+  .search span{color:var(--faint)}
+
+  /* NAV CHIPS */
+  .cats{max-width:980px;margin:18px auto 0;padding:0 18px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+  .cats::-webkit-scrollbar{display:none}
+  .chip{
+    white-space:nowrap;border:1px solid var(--line);background:var(--surface);color:var(--muted);
+    padding:8px 14px;border-radius:999px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s;flex:none;
+  }
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* GRID */
+  main{max-width:980px;margin:0 auto;padding:22px 18px 80px}
+  .cat-title{font-size:13px;text-transform:uppercase;letter-spacing:1.3px;color:var(--faint);
+    font-weight:700;margin:30px 4px 14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+
+  .card{
+    background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);
+    overflow:hidden;display:flex;flex-direction:column;
+  }
+  .card-head{padding:16px 16px 12px}
+  .names{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .names b{font-size:17px;letter-spacing:-.3px}
+  .names .en{color:var(--faint);font-size:13px;font-weight:600;font-family:var(--mono)}
+  .desc{color:var(--muted);font-size:13.5px;margin:7px 0 0}
+  .feel{margin-top:9px;display:inline-flex;align-items:center;gap:6px;font-size:12px;
+    color:var(--accent);background:var(--accent-soft);padding:4px 10px;border-radius:999px;font-weight:600}
+
+  .stage{
+    background:var(--surface-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:26px 16px;min-height:120px;display:grid;place-items:center;position:relative;
+  }
+
+  .code-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px}
+  .code-head span{font-size:11px;letter-spacing:1px;color:var(--faint);font-weight:700;text-transform:uppercase}
+  .copy{
+    border:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:12px;font-weight:600;
+    padding:6px 12px;border-radius:9px;cursor:pointer;transition:.15s;display:flex;gap:6px;align-items:center
+  }
+  .copy.done{color:var(--ok);border-color:var(--ok)}
+  .code-toggle{width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);
+    color:var(--muted);font-size:12.5px;font-weight:600;padding:13px 15px;cursor:pointer;font-family:inherit;
+    display:flex;align-items:center;gap:8px;transition:.15s}
+  .code-toggle:hover{color:var(--text);background:var(--surface-2)}
+  .code-toggle .caret{color:var(--accent);transition:transform .2s;display:inline-block}
+  .code-toggle.open .caret{transform:rotate(90deg)}
+  .code-body{border-top:1px solid var(--line)}
+  pre{margin:0;padding:0 14px 16px;overflow-x:auto}
+  code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--text);white-space:pre}
+  .hidden{display:none !important}
+
+  /* ---- DEMO WIDGET STYLES ---- */
+  .btn{background:var(--accent);color:#fff;border:0;padding:11px 18px;border-radius:11px;
+    font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn.ghost{background:var(--surface);color:var(--text);border:1px solid var(--line)}
+
+  /* accordion */
+  .acc{width:100%;max-width:320px}
+  .acc-item{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--surface);overflow:hidden}
+  .acc-q{width:100%;text-align:left;padding:13px 15px;background:none;border:0;color:var(--text);
+    font-size:14px;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit}
+  .acc-q .plus{transition:.25s;color:var(--accent)}
+  .acc-item.open .plus{transform:rotate(45deg)}
+  .acc-a{max-height:0;overflow:hidden;transition:max-height .3s ease;color:var(--muted);font-size:13px}
+  .acc-a div{padding:0 15px 14px}
+
+  /* modal / sheet / drawer overlays live inside stage */
+  .ov{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.25s;z-index:5;border-radius:0}
+  .ov.show{opacity:1;pointer-events:auto}
+  .modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);opacity:0;
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;width:230px;
+    transition:.25s;z-index:6;box-shadow:var(--shadow)}
+  .modal.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  .modal h4{margin:0 0 6px;font-size:15px}
+  .modal p{margin:0 0 14px;color:var(--muted);font-size:13px}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    border-radius:18px 18px 0 0;padding:20px;transform:translateY(100%);transition:.3s cubic-bezier(.3,1,.4,1);z-index:6}
+  .sheet.show{transform:translateY(0)}
+  .sheet .grab{width:38px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 14px}
+  .drawer{position:absolute;left:0;top:0;bottom:0;width:62%;max-width:230px;background:var(--surface);
+    border-right:1px solid var(--line);padding:20px;transform:translateX(-100%);transition:.3s cubic-bezier(.3,1,.4,1);z-index:6}
+  .drawer.show{transform:translateX(0)}
+  .drawer a{display:block;padding:10px 0;color:var(--text);font-size:14px;border-bottom:1px solid var(--line)}
+
+  /* tooltip */
+  .tipwrap{position:relative}
+  .tip{position:absolute;bottom:130%;left:50%;transform:translateX(-50%) translateY(6px);
+    background:#000;color:#fff;padding:7px 11px;border-radius:8px;font-size:12px;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:.2s}
+  .tipwrap:hover .tip,.tipwrap:active .tip{opacity:1;transform:translateX(-50%) translateY(0)}
+  .tip::after{content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:5px solid transparent;border-top-color:#000}
+
+  /* toast */
+  .toast{position:absolute;bottom:16px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--text);color:var(--bg);padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;
+    opacity:0;transition:.3s;z-index:7;display:flex;gap:9px;align-items:center}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+  /* tabs */
+  .tabs{width:100%;max-width:300px}
+  .tabbar{display:flex;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:4px;gap:4px}
+  .tabbar button{flex:1;border:0;background:none;color:var(--muted);padding:9px;border-radius:8px;
+    font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+  .tabbar button.active{background:var(--accent);color:#fff}
+  .tabpanel{padding:16px 4px 0;color:var(--muted);font-size:13.5px;min-height:40px}
+
+  /* segmented */
+  .seg{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+  .seg button{border:0;background:none;color:var(--muted);padding:8px 16px;border-radius:999px;
+    font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+  .seg button.active{background:var(--accent);color:#fff}
+
+  /* switch */
+  .sw{width:52px;height:30px;border-radius:999px;background:var(--line);border:0;cursor:pointer;
+    position:relative;transition:.25s}
+  .sw.on{background:var(--ok)}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;
+    background:#fff;transition:.25s;box-shadow:0 2px 5px rgba(0,0,0,.3)}
+  .sw.on::after{left:25px}
+
+  /* dropdown */
+  .dd{position:relative}
+  .dd-menu{position:absolute;top:112%;left:0;background:var(--surface);border:1px solid var(--line);
+    border-radius:12px;padding:6px;min-width:150px;box-shadow:var(--shadow);opacity:0;transform:translateY(-6px);
+    pointer-events:none;transition:.18s;z-index:8}
+  .dd-menu.show{opacity:1;transform:translateY(0);pointer-events:auto}
+  .dd-menu a{display:block;padding:9px 12px;border-radius:8px;color:var(--text);font-size:13.5px}
+  .dd-menu a:hover{background:var(--surface-2)}
+
+  /* skeleton */
+  .skel{width:100%;max-width:300px}
+  .sk{background:linear-gradient(90deg,var(--line) 25%,var(--surface) 50%,var(--line) 75%);
+    background-size:200% 100%;animation:sh 1.3s infinite;border-radius:8px}
+  @keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  .sk.line{height:12px;margin-bottom:9px}
+  .sk.av{width:44px;height:44px;border-radius:50%}
+
+  /* spinner */
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:rot .8s linear infinite}
+  @keyframes rot{to{transform:rotate(360deg)}}
+
+  /* progress */
+  .prog{width:100%;max-width:280px}
+  .prog-track{height:9px;background:var(--line);border-radius:999px;overflow:hidden}
+  .prog-fill{height:100%;width:0;background:var(--accent);border-radius:999px;transition:width .4s ease}
+
+  /* stepper */
+  .step{display:flex;align-items:center;gap:0;max-width:300px}
+  .step .dot{width:30px;height:30px;border-radius:50%;background:var(--surface);border:2px solid var(--line);
+    display:grid;place-items:center;font-size:13px;font-weight:700;color:var(--muted);flex:none;transition:.2s}
+  .step .dot.done{background:var(--accent);border-color:var(--accent);color:#fff}
+  .step .seg-l{flex:1;height:2px;background:var(--line);transition:.3s}
+  .step .seg-l.done{background:var(--accent)}
+
+  /* badge */
+  .bellwrap{position:relative;font-size:30px}
+  .badge{position:absolute;top:-4px;right:-8px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;
+    min-width:19px;height:19px;border-radius:999px;display:grid;place-items:center;padding:0 5px}
+
+  /* carousel */
+  .car{width:100%;max-width:300px;overflow:hidden;border-radius:12px;position:relative}
+  .car-track{display:flex;transition:transform .35s ease}
+  .car-slide{min-width:100%;height:100px;display:grid;place-items:center;color:#fff;font-weight:700;font-size:20px}
+  .car-dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+  .car-dots i{width:7px;height:7px;border-radius:50%;background:var(--line);cursor:pointer}
+  .car-dots i.active{background:var(--accent)}
+
+  /* fab */
+  .fabstage{position:relative;width:100%;max-width:300px;height:118px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .fab{position:absolute;right:14px;bottom:14px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:0;font-size:26px;cursor:pointer;box-shadow:var(--shadow);display:grid;place-items:center;transition:.2s}
+  .fab:active{transform:scale(.9)}
+  .fab-item{position:absolute;right:20px;width:40px;height:40px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);color:var(--text);display:grid;place-items:center;opacity:0;transform:translateY(12px);transition:.25s;pointer-events:none;cursor:pointer}
+  .fab-item.show{opacity:1;transform:translateY(0)}
+
+  /* pull to refresh */
+  .ptr{width:100%;max-width:300px;height:150px;border:1px solid var(--line);border-radius:12px;overflow:hidden;position:relative;background:var(--surface)}
+  .ptr-ind{position:absolute;top:0;left:0;right:0;height:46px;display:grid;place-items:center;color:var(--muted);font-size:12px}
+  .ptr-ind .spin{width:22px;height:22px;border-width:2px}
+  .ptr-list{position:relative;background:var(--surface);transition:transform .25s;overflow-y:auto;height:100%;touch-action:pan-y}
+  .ptr-row{padding:13px 15px;border-bottom:1px solid var(--line);font-size:13.5px}
+
+  /* infinite scroll */
+  .inf{width:100%;max-width:300px;height:150px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+  .inf-row{padding:13px 15px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .inf-load{padding:14px;display:grid;place-items:center}
+  .inf-load .spin{width:22px;height:22px;border-width:2px}
+
+  /* icon gallery */
+  .iconwrap{max-width:980px;margin:0 auto;padding:12px 18px 80px}
+  .icon-note{color:var(--muted);font-size:13.5px;margin:4px 4px 16px}
+  .icon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:10px}
+  .icon-tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:15px 8px;display:flex;flex-direction:column;align-items:center;gap:9px;cursor:pointer;transition:.15s}
+  .icon-tile:hover{border-color:var(--accent);background:var(--surface-2)}
+  .icon-tile svg{width:24px;height:24px;color:var(--text)}
+  .icon-tile.done{border-color:var(--ok);background:var(--surface-2)}
+  .icon-name{font-size:10.5px;color:var(--faint);font-family:var(--mono);text-align:center;word-break:break-all;line-height:1.3}
+  .icon-count{color:var(--text);font-weight:700}
+
+  footer{max-width:980px;margin:0 auto;padding:30px 18px 50px;color:var(--faint);font-size:12.5px;border-top:1px solid var(--line)}
+  .empty{color:var(--faint);text-align:center;padding:50px 0;font-size:14px}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo"><span class="dot"></span>Etkileşim Sözlüğü <small>BYK LAB</small></div>
+    <div class="spacer"></div>
+    <button class="iconbtn" id="theme" title="Tema">🌙</button>
+  </div>
+</header>
+
+<section class="intro">
+  <h1>Ne demek istediğimi<br>burada göster.</h1>
+  <p>Her etkileşimin Türkçe + İngilizce adı, canlı çalışan hali, nasıl hissettirdiği ve kopyalanabilir kodu bir arada. "Akordeon gibi açılsın" dediğimde ikimiz de aynı şeyi görelim diye.</p>
+  <div class="search">
+    <span>🔍</span>
+    <input id="q" type="text" placeholder="Ara: akordeon, modal, toast, sekme...">
+  </div>
+</section>
+
+<div class="cats" id="cats"></div>
+
+<main id="main"></main>
+<section id="iconwrap" class="iconwrap hidden"></section>
+
+<footer>
+  BYK LAB · İç kullanım için etkileşim referansı. Bir öğeyi görüp "evet, tam bunu istiyorum" diyebilmen için.
+</footer>
+
+<script>
+/* ============ VERİ: Her etkileşim bir obje ============ */
+const DATA = [
+{
+  cat:"Açılır / Genişleyen", tr:"Akordeon", en:"Accordion",
+  desc:"Başlığa basınca altındaki içerik aşağı doğru açılır; tekrar basınca kapanır. Aynı anda liste halinde birden çok başlık olur.",
+  feel:"Yer kaplamadan içerik gizle/göster",
+  demo:`<div class="acc">
+    <div class="acc-item"><button class="acc-q">Kargo ne zaman gelir?<span class="plus">+</span></button><div class="acc-a"><div>2-3 iş günü içinde teslim edilir.</div></div></div>
+    <div class="acc-item"><button class="acc-q">İade yapabilir miyim?<span class="plus">+</span></button><div class="acc-a"><div>14 gün içinde ücretsiz iade.</div></div></div>
+  </div>`,
+  init:(r)=>{r.querySelectorAll('.acc-q').forEach(q=>q.onclick=()=>{
+    const it=q.closest('.acc-item'),a=it.querySelector('.acc-a');
+    it.classList.toggle('open');a.style.maxHeight=it.classList.contains('open')?a.scrollHeight+'px':0;});},
+  code:`<div class="acc-item">
+  <button class="acc-q" onclick="toggle(this)">
+    Başlık <span>+</span>
+  </button>
+  <div class="acc-a"><div>İçerik...</div></div>
+</div>
+
+function toggle(q){
+  const item = q.closest('.acc-item');
+  const body = item.querySelector('.acc-a');
+  item.classList.toggle('open');
+  body.style.maxHeight = item.classList.contains('open')
+    ? body.scrollHeight + 'px' : 0;
+}`
+},
+{
+  cat:"Üst Katman (Overlay)", tr:"Modal / Diyalog", en:"Modal / Dialog",
+  desc:"Ekranın ortasında, arkası karartılarak çıkan kutu. 'Yeni bir ekran / kutucuk açıldı' hissi veren şey tam olarak budur. Kapatmadan arkayla işlem yapamazsın.",
+  feel:"Araya giren, odak isteyen kutu",
+  demo:`<button class="btn" data-open>Modal'ı aç</button>
+  <div class="ov"></div>
+  <div class="modal"><h4>Emin misin?</h4><p>Bu işlem geri alınamaz.</p><button class="btn" data-close>Tamam</button></div>`,
+  init:(r)=>{const ov=r.querySelector('.ov'),m=r.querySelector('.modal');
+    r.querySelector('[data-open]').onclick=()=>{ov.classList.add('show');m.classList.add('show')};
+    const close=()=>{ov.classList.remove('show');m.classList.remove('show')};
+    ov.onclick=close;r.querySelector('[data-close]').onclick=close;},
+  code:`<button onclick="openModal()">Aç</button>
+<div class="overlay" id="ov"></div>
+<div class="modal" id="m">
+  <h4>Emin misin?</h4>
+  <button onclick="closeModal()">Tamam</button>
+</div>
+
+function openModal(){ ov.classList.add('show'); m.classList.add('show'); }
+function closeModal(){ ov.classList.remove('show'); m.classList.remove('show'); }
+// overlay'e tıklayınca da kapanır`
+},
+{
+  cat:"Üst Katman (Overlay)", tr:"Alt Sayfa", en:"Bottom Sheet",
+  desc:"Aşağıdan yukarı doğru kayarak gelen panel. Mobilde modal yerine çok kullanılır — başparmakla erişmesi kolay. 'Aşağıdan bir menü çıktı' dediğin şey.",
+  feel:"Mobilde alttan kayan menü",
+  demo:`<button class="btn" data-open>Alt sayfayı aç</button>
+  <div class="ov"></div>
+  <div class="sheet"><div class="grab"></div><h4 style="margin:0 0 4px">Paylaş</h4><p style="margin:0;color:var(--muted);font-size:13px">WhatsApp · Kopyala · Instagram</p></div>`,
+  init:(r)=>{const ov=r.querySelector('.ov'),s=r.querySelector('.sheet');
+    r.querySelector('[data-open]').onclick=()=>{ov.classList.add('show');s.classList.add('show')};
+    ov.onclick=()=>{ov.classList.remove('show');s.classList.remove('show')};},
+  code:`<div class="sheet" id="sheet">
+  <div class="grab"></div>
+  <h4>Paylaş</h4>
+</div>
+
+.sheet{
+  position:fixed; left:0; right:0; bottom:0;
+  border-radius:18px 18px 0 0;
+  transform:translateY(100%);
+  transition:.3s cubic-bezier(.3,1,.4,1);
+}
+.sheet.show{ transform:translateY(0); }`
+},
+{
+  cat:"Üst Katman (Overlay)", tr:"Yan Panel / Çekmece", en:"Drawer",
+  desc:"Kenardan (genelde soldan) içeri kayan menü. Hamburger menüye basınca açılan gezinme paneli budur.",
+  feel:"Kenardan kayan gezinme menüsü",
+  demo:`<button class="btn" data-open>☰ Menüyü aç</button>
+  <div class="ov"></div>
+  <div class="drawer"><a>Ana Sayfa</a><a>Antrenmanlar</a><a>Beslenme</a><a>Profil</a></div>`,
+  init:(r)=>{const ov=r.querySelector('.ov'),d=r.querySelector('.drawer');
+    r.querySelector('[data-open]').onclick=()=>{ov.classList.add('show');d.classList.add('show')};
+    ov.onclick=()=>{ov.classList.remove('show');d.classList.remove('show')};},
+  code:`<div class="drawer" id="drawer">
+  <a>Ana Sayfa</a><a>Profil</a>
+</div>
+
+.drawer{
+  position:fixed; left:0; top:0; bottom:0; width:260px;
+  transform:translateX(-100%);
+  transition:.3s cubic-bezier(.3,1,.4,1);
+}
+.drawer.show{ transform:translateX(0); }`
+},
+{
+  cat:"Üst Katman (Overlay)", tr:"İpucu Balonu", en:"Tooltip",
+  desc:"Bir öğenin üzerine gelince (mobilde basılı tutunca) çıkan küçük açıklama balonu. Tıklamayı gerektirmez.",
+  feel:"Üzerine gelince çıkan mini açıklama",
+  demo:`<div class="tipwrap"><button class="btn ghost">ⓘ Bilgi</button><div class="tip">Bu bir ipucu balonudur</div></div>`,
+  init:()=>{},
+  code:`<div class="tipwrap">
+  <button>ⓘ</button>
+  <div class="tip">Açıklama metni</div>
+</div>
+
+.tip{ opacity:0; transition:.2s; }
+.tipwrap:hover .tip{ opacity:1; }`
+},
+{
+  cat:"Üst Katman (Overlay)", tr:"Açılır Menü", en:"Dropdown",
+  desc:"Bir butona basınca hemen altında beliren seçenek listesi. Modal değildir, sayfanın akışını bozmaz.",
+  feel:"Butonun altında açılan seçenek listesi",
+  demo:`<div class="dd"><button class="btn ghost" data-t>Seçenekler ▾</button>
+    <div class="dd-menu"><a>Düzenle</a><a>Kopyala</a><a>Sil</a></div></div>`,
+  init:(r)=>{const b=r.querySelector('[data-t]'),m=r.querySelector('.dd-menu');
+    b.onclick=(e)=>{e.stopPropagation();m.classList.toggle('show')};
+    document.addEventListener('click',()=>m.classList.remove('show'));},
+  code:`<div class="dd">
+  <button onclick="menu.classList.toggle('show')">▾</button>
+  <div class="dd-menu" id="menu">
+    <a>Düzenle</a><a>Sil</a>
+  </div>
+</div>
+// dışarı tıklayınca kapat:
+document.onclick = () => menu.classList.remove('show');`
+},
+{
+  cat:"Bildirim & Durum", tr:"Toast / Bildirim", en:"Toast / Snackbar",
+  desc:"Bir işlemden sonra kısa süre görünüp kendiliğinden kaybolan küçük mesaj. 'Kaydedildi ✓' gibi. Kullanıcıyı durdurmaz.",
+  feel:"Çıkıp kendi kendine kaybolan onay",
+  demo:`<button class="btn" data-t>Kaydet</button><div class="toast">✓ Kaydedildi</div>`,
+  init:(r)=>{const t=r.querySelector('.toast');r.querySelector('[data-t]').onclick=()=>{
+    t.classList.add('show');clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove('show'),1800);};},
+  code:`<div class="toast" id="toast">✓ Kaydedildi</div>
+
+function showToast(){
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}`
+},
+{
+  cat:"Bildirim & Durum", tr:"Rozet", en:"Badge",
+  desc:"Bir ikonun köşesindeki küçük sayı/nokta. Okunmamış bildirim sayısını gösterir.",
+  feel:"İkon köşesindeki bildirim sayacı",
+  demo:`<div class="bellwrap">🔔<span class="badge">3</span></div>`,
+  init:()=>{},
+  code:`<div class="bellwrap">
+  🔔 <span class="badge">3</span>
+</div>
+
+.badge{
+  position:absolute; top:-4px; right:-8px;
+  background:#ef4444; color:#fff;
+  border-radius:999px; min-width:19px; height:19px;
+}`
+},
+{
+  cat:"Bildirim & Durum", tr:"İskelet Yükleyici", en:"Skeleton",
+  desc:"İçerik yüklenirken onun yerine çıkan gri, parlayan kutular. Boş ekran yerine 'birazdan burada içerik olacak' hissi verir.",
+  feel:"Yüklenirken içeriğin gri taslağı",
+  demo:`<div class="skel"><div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><div class="sk av"></div><div style="flex:1"><div class="sk line" style="width:60%"></div><div class="sk line" style="width:40%;margin:0"></div></div></div><div class="sk line"></div><div class="sk line" style="width:80%"></div></div>`,
+  init:()=>{},
+  code:`<div class="sk line"></div>
+
+.sk{
+  background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);
+  background-size:200% 100%;
+  animation:shimmer 1.3s infinite;
+}
+@keyframes shimmer{
+  0%{background-position:200% 0}
+  100%{background-position:-200% 0}
+}`
+},
+{
+  cat:"Bildirim & Durum", tr:"Dönen Yükleyici", en:"Spinner",
+  desc:"İşlem sürerken dönen halka. Ne kadar süreceği belli olmayan kısa beklemelerde kullanılır.",
+  feel:"Süre belirsiz bekleme göstergesi",
+  demo:`<div class="spin"></div>`,
+  init:()=>{},
+  code:`<div class="spin"></div>
+
+.spin{
+  width:34px; height:34px;
+  border:3px solid #eee;
+  border-top-color:#2f6bff;
+  border-radius:50%;
+  animation:rot .8s linear infinite;
+}
+@keyframes rot{ to{ transform:rotate(360deg) } }`
+},
+{
+  cat:"Bildirim & Durum", tr:"İlerleme Çubuğu", en:"Progress Bar",
+  desc:"Bir işin yüzde kaçının tamamlandığını gösteren dolan çubuk. Spinner'dan farkı: ne kadar kaldığını bilirsin.",
+  feel:"Yüzdesi belli ilerleme",
+  demo:`<div class="prog"><div class="prog-track"><div class="prog-fill"></div></div><button class="btn ghost" data-t style="margin-top:14px;font-size:13px">İlerlet</button></div>`,
+  init:(r)=>{const f=r.querySelector('.prog-fill');let p=0;
+    r.querySelector('[data-t]').onclick=()=>{p=p>=100?0:p+25;f.style.width=p+'%';};},
+  code:`<div class="prog-track">
+  <div class="prog-fill" id="fill"></div>
+</div>
+
+fill.style.width = '60%';   // %60 tamamlandı
+
+.prog-fill{ transition:width .4s ease; }`
+},
+{
+  cat:"Gezinme & Seçim", tr:"Sekmeler", en:"Tabs",
+  desc:"Üstteki başlıklardan birine basınca altındaki içerik değişir. Aynı alanda farklı içerikler arasında geçiş.",
+  feel:"Aynı alanda içerik değiştirme",
+  demo:`<div class="tabs"><div class="tabbar"><button class="active" data-i="0">Genel</button><button data-i="1">Detay</button><button data-i="2">Yorum</button></div><div class="tabpanel">Genel bilgi burada.</div></div>`,
+  init:(r)=>{const txt=["Genel bilgi burada.","Teknik detaylar burada.","Kullanıcı yorumları burada."];
+    const p=r.querySelector('.tabpanel');r.querySelectorAll('.tabbar button').forEach(b=>b.onclick=()=>{
+      r.querySelectorAll('.tabbar button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');p.textContent=txt[b.dataset.i];});},
+  code:`<div class="tabbar">
+  <button class="active" onclick="go(0)">Genel</button>
+  <button onclick="go(1)">Detay</button>
+</div>
+<div id="panel">...</div>
+
+function go(i){
+  // aktif butonu değiştir, panel içeriğini güncelle
+}`
+},
+{
+  cat:"Gezinme & Seçim", tr:"Segment Kontrol", en:"Segmented Control",
+  desc:"Yan yana birkaç seçenek; biri her zaman seçili. Az sayıda (2-4) seçenek için, iOS'taki gibi.",
+  feel:"Yan yana 'birini seç' düğmeleri",
+  demo:`<div class="seg"><button class="active">Günlük</button><button>Haftalık</button><button>Aylık</button></div>`,
+  init:(r)=>{r.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+    r.querySelectorAll('.seg button').forEach(x=>x.classList.remove('active'));b.classList.add('active');});},
+  code:`<div class="seg">
+  <button class="active">Günlük</button>
+  <button>Haftalık</button>
+</div>
+// tıklanana .active ver, diğerlerinden al`
+},
+{
+  cat:"Gezinme & Seçim", tr:"Anahtar", en:"Toggle / Switch",
+  desc:"Açık/kapalı iki durumu olan kaydırmalı düğme. Checkbox'ın modern hali; ayarlarda kullanılır.",
+  feel:"Aç/kapa kaydırmalı düğme",
+  demo:`<button class="sw"></button>`,
+  init:(r)=>{r.querySelector('.sw').onclick=(e)=>e.currentTarget.classList.toggle('on');},
+  code:`<button class="sw" onclick="this.classList.toggle('on')"></button>
+
+.sw::after{ content:""; /* yuvarlak topuz */ transition:.25s; }
+.sw.on{ background:#34d399; }
+.sw.on::after{ left:25px; }`
+},
+{
+  cat:"Gezinme & Seçim", tr:"Adım Göstergesi", en:"Stepper",
+  desc:"Çok adımlı bir sürecin (kayıt, ödeme) kaçıncı adımda olduğunu gösteren nokta/çizgi dizisi.",
+  feel:"Kaçıncı adımdayım göstergesi",
+  demo:`<div class="step"><div class="dot done">1</div><div class="seg-l done"></div><div class="dot done">2</div><div class="seg-l"></div><div class="dot">3</div></div><button class="btn ghost" data-t style="margin-top:16px;font-size:13px">İleri</button>`,
+  init:(r)=>{const dots=r.querySelectorAll('.dot'),lines=r.querySelectorAll('.seg-l');let s=2;
+    r.querySelector('[data-t]').onclick=()=>{if(s>=3){s=1;dots.forEach((d,i)=>d.classList.toggle('done',i<1));lines.forEach(l=>l.classList.remove('done'));return;}
+      s++;dots.forEach((d,i)=>d.classList.toggle('done',i<s));lines.forEach((l,i)=>l.classList.toggle('done',i<s-1));};},
+  code:`<div class="step">
+  <div class="dot done">1</div>
+  <div class="line done"></div>
+  <div class="dot done">2</div>
+  <div class="line"></div>
+  <div class="dot">3</div>
+</div>
+// tamamlanan adımlara .done ver`
+},
+{
+  cat:"İçerik", tr:"Kaydırıcı", en:"Carousel / Slider",
+  desc:"Yan yana dizili içeriklerin kayarak tek tek gösterildiği alan. Alttaki noktalar hangisinde olduğunu belli eder.",
+  feel:"Yana kayan görsel/kart galerisi",
+  demo:`<div class="car"><div class="car-track">
+    <div class="car-slide" style="background:#4f8cff">1</div>
+    <div class="car-slide" style="background:#34d399">2</div>
+    <div class="car-slide" style="background:#fbbf24">3</div>
+  </div></div><div class="car-dots"><i class="active"></i><i></i><i></i></div>`,
+  init:(r)=>{const track=r.querySelector('.car-track'),dots=r.querySelectorAll('.car-dots i');let i=0;
+    const go=n=>{i=n;track.style.transform=`translateX(-${n*100}%)`;dots.forEach((d,k)=>d.classList.toggle('active',k===n));};
+    dots.forEach((d,k)=>d.onclick=()=>go(k));
+    r._iv=setInterval(()=>go((i+1)%3),2200);},
+  code:`<div class="car">
+  <div class="car-track" id="track">
+    <div class="car-slide">1</div>
+    <div class="car-slide">2</div>
+  </div>
+</div>
+
+track.style.transform = 'translateX(-100%)'; // 2. slayt
+.car-track{ transition:transform .35s ease; }`
+},
+{
+  cat:"Gezinme & Seçim", tr:"Yüzen Buton", en:"FAB (Floating Action Button)",
+  desc:"Ekranın köşesinde sabit duran, sayfa kaysa da yerinde kalan yuvarlak eylem butonu. Basınca ek seçenekler açabilir.",
+  feel:"Köşede sabit duran ana eylem",
+  demo:`<div class="fabstage">
+    <span style="position:absolute;top:14px;left:14px;color:var(--faint);font-size:12px">İçerik akışı...</span>
+    <button class="fab-item" style="bottom:124px">★</button>
+    <button class="fab-item" style="bottom:72px">✎</button>
+    <button class="fab">+</button>
+  </div>`,
+  init:(r)=>{const f=r.querySelector('.fab'),items=r.querySelectorAll('.fab-item');let o=false;
+    f.onclick=()=>{o=!o;f.textContent=o?'×':'+';items.forEach(i=>i.classList.toggle('show',o));};},
+  code:`<button class="fab">+</button>
+
+.fab{
+  position:fixed; right:20px; bottom:20px;
+  width:56px; height:56px; border-radius:50%;
+  box-shadow:0 8px 24px rgba(0,0,0,.3);
+}`
+},
+{
+  cat:"İçerik", tr:"Aşağı Çekip Yenileme", en:"Pull to Refresh",
+  desc:"Listenin en üstündeyken parmağınla aşağı çekince yenilenmesi. Sosyal medya akışlarındaki o hareket. (Demoyu fareyle de çekebilirsin.)",
+  feel:"Aşağı çekince yenilenen liste",
+  demo:`<div class="ptr">
+    <div class="ptr-ind"><span class="ptr-txt">↓ Aşağı çek</span></div>
+    <div class="ptr-list">
+      <div class="ptr-row">Satır 1</div><div class="ptr-row">Satır 2</div>
+      <div class="ptr-row">Satır 3</div><div class="ptr-row">Satır 4</div>
+    </div>
+  </div>`,
+  init:(r)=>{const list=r.querySelector('.ptr-list'),ind=r.querySelector('.ptr-ind');
+    let startY=0,pulling=false,dy=0;
+    const yOf=e=>e.touches?e.touches[0].clientY:e.clientY;
+    const down=e=>{if(list.scrollTop<=0){startY=yOf(e);pulling=true;}};
+    const move=e=>{if(!pulling)return;dy=Math.max(0,Math.min(60,yOf(e)-startY));
+      list.style.transform='translateY('+dy+'px)';
+      const t=ind.querySelector('.ptr-txt');if(t)t.textContent=dy>45?'↑ Bırak':'↓ Aşağı çek';};
+    const up=()=>{if(!pulling)return;pulling=false;
+      if(dy>45){ind.innerHTML='<div class="spin"></div>';list.style.transform='translateY(46px)';
+        setTimeout(()=>{ind.innerHTML='<span class="ptr-txt">↓ Aşağı çek</span>';list.style.transform='translateY(0)';},1100);}
+      else list.style.transform='translateY(0)';dy=0;};
+    list.addEventListener('mousedown',down);list.addEventListener('touchstart',down,{passive:true});
+    window.addEventListener('mousemove',move);list.addEventListener('touchmove',move,{passive:true});
+    window.addEventListener('mouseup',up);list.addEventListener('touchend',up);},
+  code:`// liste en üstteyken (scrollTop===0) aşağı sürüklemeyi yakala
+list.ontouchstart = e => startY = e.touches[0].clientY;
+list.ontouchmove  = e => {
+  const dy = e.touches[0].clientY - startY;
+  if (list.scrollTop === 0 && dy > 45) list.dataset.ready = 1;
+};
+list.ontouchend = () => { if (list.dataset.ready) refresh(); };`
+},
+{
+  cat:"İçerik", tr:"Sonsuz Kaydırma", en:"Infinite Scroll",
+  desc:"Listenin sonuna yaklaşınca yeni içerik otomatik yüklenir; 'sonraki sayfa' butonuna gerek kalmaz. (İçinde kaydır.)",
+  feel:"Sona gelince kendi yüklenen liste",
+  demo:`<div class="inf"><div class="inf-body"></div><div class="inf-load hidden"><div class="spin"></div></div></div>`,
+  init:(r)=>{const box=r.querySelector('.inf'),body=r.querySelector('.inf-body'),load=r.querySelector('.inf-load');
+    let n=0;const add=k=>{for(let i=0;i<k;i++){n++;const d=document.createElement('div');d.className='inf-row';d.textContent='Öğe '+n;body.appendChild(d);}};
+    add(6);
+    box.addEventListener('scroll',()=>{if(load.dataset.busy)return;
+      if(box.scrollTop+box.clientHeight>=box.scrollHeight-20&&n<40){
+        load.classList.remove('hidden');load.dataset.busy=1;
+        setTimeout(()=>{add(5);load.classList.add('hidden');load.dataset.busy='';},800);}});},
+  code:`box.onscroll = () => {
+  const bottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 20;
+  if (bottom && !loading) loadMore();  // yeni öğeleri ekle
+};`
+}
+];
+
+/* ============ RENDER ============ */
+const main=document.getElementById('main');
+const catsEl=document.getElementById('cats');
+const cats=[...new Set(DATA.map(d=>d.cat))];
+let activeCat='Hepsi';
+
+function render(filter=''){
+  main.innerHTML='';
+  const groups=cats.filter(c=>activeCat==='Hepsi'||c===activeCat);
+  let any=false;
+  groups.forEach(c=>{
+    const items=DATA.filter(d=>d.cat===c &&
+      (d.tr.toLowerCase().includes(filter)||d.en.toLowerCase().includes(filter)||d.desc.toLowerCase().includes(filter)));
+    if(!items.length)return;
+    any=true;
+    const h=document.createElement('div');h.className='cat-title';h.textContent=c;main.appendChild(h);
+    const grid=document.createElement('div');grid.className='grid';
+    items.forEach(d=>grid.appendChild(buildCard(d)));
+    main.appendChild(grid);
+  });
+  if(!any)main.innerHTML='<div class="empty">Sonuç yok 🤷 Başka bir kelime dene.</div>';
+}
+
+function buildCard(d){
+  const card=document.createElement('div');card.className='card';
+  card.innerHTML=`
+    <div class="card-head">
+      <div class="names"><b>${d.tr}</b><span class="en">${d.en}</span></div>
+      <p class="desc">${d.desc}</p>
+      <span class="feel">✦ ${d.feel}</span>
+    </div>
+    <div class="stage">${d.demo}</div>
+    <button class="code-toggle"><span class="caret">▸</span> Kodu göster</button>
+    <div class="code-body hidden">
+      <div class="code-head"><span>Kod</span><button class="copy">📋 Kopyala</button></div>
+      <pre><code></code></pre>
+    </div>`;
+  card.querySelector('code').textContent=d.code;
+  const stage=card.querySelector('.stage');
+  try{d.init(stage);}catch(e){}
+  const toggle=card.querySelector('.code-toggle'),body=card.querySelector('.code-body');
+  toggle.onclick=()=>{const open=body.classList.toggle('hidden')===false;
+    toggle.classList.toggle('open',open);
+    toggle.innerHTML=(open?'<span class="caret">▸</span> Kodu gizle':'<span class="caret">▸</span> Kodu göster');};
+  const btn=card.querySelector('.copy');
+  btn.onclick=()=>{navigator.clipboard.writeText(d.code).then(()=>{
+    btn.classList.add('done');btn.textContent='✓ Kopyalandı';
+    setTimeout(()=>{btn.classList.remove('done');btn.textContent='📋 Kopyala';},1500);});};
+  return card;
+}
+
+/* ============ İKON GALERİSİ (Lucide) ============ */
+const iconwrap=document.getElementById('iconwrap');
+let iconsReady=false;
+function kebab(s){return s.replace(/([a-z0-9])([A-Z])/g,'$1-$2').toLowerCase();}
+function openIcons(){
+  if(iconsReady)return;iconsReady=true;
+  iconwrap.innerHTML='<p class="icon-note">Lucide ikon seti yükleniyor…</p>';
+  const s=document.createElement('script');
+  s.src='https://unpkg.com/lucide@latest/dist/umd/lucide.js';
+  s.onload=buildIcons;
+  s.onerror=()=>{iconsReady=false;iconwrap.innerHTML='<p class="icon-note">İkonlar yüklenemedi. Tüm liste: <a href="https://lucide.dev/icons" target="_blank">lucide.dev/icons</a></p>';};
+  document.head.appendChild(s);
+}
+function buildIcons(){
+  const names=[...new Set(Object.keys(window.lucide.icons||{}).map(kebab))].sort();
+  iconwrap.innerHTML='<p class="icon-note">Lucide ikon seti — toplam <span class="icon-count" id="icount">'+names.length+'</span> ikon. Bir ikona tıkla → kullanım kodu kopyalanır. Kaynak: <a href="https://lucide.dev/icons" target="_blank">lucide.dev/icons</a></p><div class="icon-grid" id="igrid"></div>';
+  const grid=document.getElementById('igrid'),frag=document.createDocumentFragment();
+  names.forEach(nm=>{
+    const t=document.createElement('div');t.className='icon-tile';t.dataset.n=nm;
+    t.innerHTML='<i data-lucide="'+nm+'"></i><span class="icon-name">'+nm+'</span>';
+    t.onclick=()=>{navigator.clipboard.writeText('<i data-lucide="'+nm+'"></i>');
+      t.classList.add('done');setTimeout(()=>t.classList.remove('done'),900);};
+    frag.appendChild(t);
+  });
+  grid.appendChild(frag);
+  window.lucide.createIcons();
+  filterIcons(document.getElementById('q').value.toLowerCase().trim());
+}
+function filterIcons(f){
+  const grid=document.getElementById('igrid');if(!grid){openIcons();return;}
+  let c=0;grid.querySelectorAll('.icon-tile').forEach(t=>{const m=t.dataset.n.includes(f);t.style.display=m?'':'none';if(m)c++;});
+  const ic=document.getElementById('icount');if(ic)ic.textContent=c;
+}
+
+/* ============ GÖRÜNÜM ============ */
+function applyFilter(){
+  const f=document.getElementById('q').value.toLowerCase().trim();
+  if(activeCat==='İkonlar'){main.classList.add('hidden');iconwrap.classList.remove('hidden');
+    if(!iconsReady)openIcons();else filterIcons(f);}
+  else{iconwrap.classList.add('hidden');main.classList.remove('hidden');render(f);}
+}
+
+/* kategori çipleri */
+['Hepsi',...cats,'İkonlar'].forEach(c=>{
+  const chip=document.createElement('button');chip.className='chip'+(c==='Hepsi'?' active':'');
+  chip.textContent=c==='İkonlar'?'◇ İkonlar':c;chip.onclick=()=>{activeCat=c;
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));chip.classList.add('active');
+    applyFilter();};
+  catsEl.appendChild(chip);});
+
+document.getElementById('q').addEventListener('input',applyFilter);
+
+/* tema */
+const tbtn=document.getElementById('theme');
+tbtn.onclick=()=>{const l=document.documentElement.getAttribute('data-theme')==='light';
+  document.documentElement.setAttribute('data-theme',l?'dark':'light');tbtn.textContent=l?'🌙':'☀️';};
+
+render();
+</script>
+</body>
+</html>
