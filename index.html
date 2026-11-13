@@ -255,6 +255,39 @@
   .icon-name{font-size:10.5px;color:var(--faint);font-family:var(--mono);text-align:center;word-break:break-all;line-height:1.3}
   .icon-count{color:var(--text);font-weight:700}
 
+  /* CARD AS BUTTON */
+  .card-btn{font-family:inherit;color:inherit;text-align:left;width:100%;cursor:pointer;padding:0;
+    background:var(--surface);transition:.15s}
+  .card-btn:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .card-cta{border-top:1px solid var(--line);padding:13px 16px;color:var(--accent);
+    font-weight:700;font-size:13.5px;display:flex;justify-content:space-between;align-items:center}
+  .card-btn:hover .card-cta{background:var(--surface-2)}
+
+  /* DEMO PAGE */
+  .page{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;
+    transform:translateX(100%);transition:transform .32s cubic-bezier(.3,1,.4,1)}
+  .page.open{transform:translateX(0)}
+  .page-top{position:sticky;top:0;z-index:5;background:linear-gradient(135deg,var(--accent),#7c3aed);
+    color:#fff;padding:15px 18px;display:flex;align-items:center;gap:14px}
+  .page-back{background:rgba(255,255,255,.2);border:0;color:#fff;width:40px;height:40px;
+    border-radius:12px;font-size:20px;cursor:pointer;flex:none;display:grid;place-items:center;font-family:inherit}
+  .page-back:active{transform:scale(.92)}
+  .page-ttl b{display:block;font-size:19px;letter-spacing:-.3px;line-height:1.2}
+  .page-ttl span{font-size:12.5px;opacity:.85;font-family:var(--mono)}
+  .page-in{max-width:760px;margin:0 auto;padding:22px 18px 70px}
+  .page-desc{font-size:16px;line-height:1.6;margin:0 0 14px;color:var(--text)}
+  .page-feel{display:inline-flex;gap:7px;align-items:center;background:var(--accent);color:#fff;
+    padding:7px 14px;border-radius:999px;font-size:13px;font-weight:700;margin-bottom:28px}
+  .hint{display:flex;flex-direction:column;align-items:center;gap:2px;margin-bottom:8px}
+  .hint b{background:#fbbf24;color:#1a1200;padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:800}
+  .hint i{font-size:20px;color:#fbbf24;font-style:normal;animation:bob 1s ease-in-out infinite;line-height:1}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+  .bigstage{background:var(--surface);border:2px solid var(--accent);border-radius:20px;
+    padding:42px 20px;min-height:270px;display:grid;place-items:center;position:relative;
+    overflow:hidden;box-shadow:0 0 0 6px var(--accent-soft)}
+  .page-in .code-toggle{border:1px solid var(--line);border-radius:12px;margin-top:28px}
+  .page-in .code-body{border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px}
+
   footer{max-width:980px;margin:0 auto;padding:30px 18px 50px;color:var(--faint);font-size:12.5px;border-top:1px solid var(--line)}
   .empty{color:var(--faint);text-align:center;padding:50px 0;font-size:14px}
   @media(max-width:600px){.grid{grid-template-columns:1fr}}
@@ -271,7 +304,7 @@
 
 <section class="intro">
   <h1>Ne demek istediğimi<br>burada göster.</h1>
-  <p>Her etkileşimin Türkçe + İngilizce adı, canlı çalışan hali, nasıl hissettirdiği ve kopyalanabilir kodu bir arada. "Akordeon gibi açılsın" dediğimde ikimiz de aynı şeyi görelim diye.</p>
+  <p>Her etkileşimin Türkçe + İngilizce adı, canlı çalışan hali, nasıl hissettirdiği ve kopyalanabilir kodu bir arada. "Akordeon gibi açılsın" dediğimde ikimiz de aynı şeyi görelim diye. <b>Bir karta bas — demo tam sayfa açılır.</b></p>
   <div class="search">
     <span>🔍</span>
     <input id="q" type="text" placeholder="Ara: akordeon, modal, toast, sekme...">
@@ -282,6 +315,7 @@
 
 <main id="main"></main>
 <section id="iconwrap" class="iconwrap hidden"></section>
+<section id="page" class="page hidden"></section>
 
 <footer>
   BYK LAB · İç kullanım için etkileşim referansı. Bir öğeyi görüp "evet, tam bunu istiyorum" diyebilmen için.
@@ -673,33 +707,103 @@ function render(filter=''){
   if(!any)main.innerHTML='<div class="empty">Sonuç yok 🤷 Başka bir kelime dene.</div>';
 }
 
+const HINTS={
+ 'Accordion':'Başlığa bas',
+ 'Modal / Dialog':'Butona bas',
+ 'Bottom Sheet':'Butona bas',
+ 'Drawer':'Menü butonuna bas',
+ 'Tooltip':'Üzerine gel / basılı tut',
+ 'Dropdown':'Butona bas',
+ 'Toast / Snackbar':'Kaydet\'e bas',
+ 'Badge':'Köşedeki sayıya bak',
+ 'Skeleton':'Parlamayı izle',
+ 'Spinner':'Dönmeyi izle',
+ 'Progress Bar':'İlerlet\'e bas',
+ 'Tabs':'Sekmelere bas',
+ 'Segmented Control':'Seçeneklere bas',
+ 'Toggle / Switch':'Anahtara bas',
+ 'Stepper':'İleri\'ye bas',
+ 'Carousel / Slider':'Alttaki noktalara bas',
+ 'FAB (Floating Action Button)':'+ butonuna bas',
+ 'Pull to Refresh':'Listeyi aşağı çek',
+ 'Infinite Scroll':'İçinde aşağı kaydır'
+};
+function slugOf(d){return d.en.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');}
+
 function buildCard(d){
-  const card=document.createElement('div');card.className='card';
+  const card=document.createElement('button');card.className='card card-btn';
   card.innerHTML=`
     <div class="card-head">
       <div class="names"><b>${d.tr}</b><span class="en">${d.en}</span></div>
       <p class="desc">${d.desc}</p>
       <span class="feel">✦ ${d.feel}</span>
     </div>
-    <div class="stage">${d.demo}</div>
-    <button class="code-toggle"><span class="caret">▸</span> Kodu göster</button>
-    <div class="code-body hidden">
-      <div class="code-head"><span>Kod</span><button class="copy">📋 Kopyala</button></div>
-      <pre><code></code></pre>
-    </div>`;
-  card.querySelector('code').textContent=d.code;
-  const stage=card.querySelector('.stage');
-  try{d.init(stage);}catch(e){}
-  const toggle=card.querySelector('.code-toggle'),body=card.querySelector('.code-body');
+    <div class="card-cta"><span>Demoyu aç</span><span>→</span></div>`;
+  card.onclick=()=>{location.hash='#'+slugOf(d);};
+  return card;
+}
+
+/* ============ DEMO SAYFASI ============ */
+const pageEl=document.getElementById('page');
+let curStage=null,curSlug=null;
+
+function wireCode(root,d){
+  root.querySelector('code').textContent=d.code;
+  const toggle=root.querySelector('.code-toggle'),body=root.querySelector('.code-body');
   toggle.onclick=()=>{const open=body.classList.toggle('hidden')===false;
     toggle.classList.toggle('open',open);
     toggle.innerHTML=(open?'<span class="caret">▸</span> Kodu gizle':'<span class="caret">▸</span> Kodu göster');};
-  const btn=card.querySelector('.copy');
+  const btn=root.querySelector('.copy');
   btn.onclick=()=>{navigator.clipboard.writeText(d.code).then(()=>{
     btn.classList.add('done');btn.textContent='✓ Kopyalandı';
     setTimeout(()=>{btn.classList.remove('done');btn.textContent='📋 Kopyala';},1500);});};
-  return card;
 }
+
+function openDemo(d){
+  pageEl.innerHTML=`
+    <div class="page-top">
+      <button class="page-back" title="Geri">←</button>
+      <div class="page-ttl"><b>${d.tr}</b><span>${d.en}</span></div>
+    </div>
+    <div class="page-in">
+      <p class="page-desc">${d.desc}</p>
+      <div class="page-feel">✦ ${d.feel}</div>
+      <div class="hint"><b>👇 ${HINTS[d.en]||'Dene'}</b><i>▼</i></div>
+      <div class="bigstage">${d.demo}</div>
+      <button class="code-toggle"><span class="caret">▸</span> Kodu göster</button>
+      <div class="code-body hidden">
+        <div class="code-head"><span>Kod</span><button class="copy">📋 Kopyala</button></div>
+        <pre><code></code></pre>
+      </div>
+    </div>`;
+  const stage=pageEl.querySelector('.bigstage');curStage=stage;
+  try{d.init(stage);}catch(e){}
+  wireCode(pageEl,d);
+  pageEl.querySelector('.page-back').onclick=()=>history.back();
+  pageEl.classList.remove('hidden');
+  pageEl.scrollTop=0;
+  requestAnimationFrame(()=>pageEl.classList.add('open'));
+  document.body.style.overflow='hidden';
+}
+
+function closeDemo(){
+  if(curStage&&curStage._iv)clearInterval(curStage._iv);
+  curStage=null;
+  pageEl.classList.remove('open');
+  document.body.style.overflow='';
+  setTimeout(()=>{if(!pageEl.classList.contains('open')){pageEl.classList.add('hidden');pageEl.innerHTML='';}},340);
+}
+
+function routeFromHash(){
+  const h=decodeURIComponent(location.hash.replace(/^#/,''));
+  if(h===curSlug)return;
+  if(!h){curSlug=null;closeDemo();return;}
+  const d=DATA.find(x=>slugOf(x)===h);
+  if(!d){curSlug=null;closeDemo();return;}
+  curSlug=h;openDemo(d);
+}
+window.addEventListener('hashchange',routeFromHash);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&curSlug)history.back();});
 
 /* ============ İKON GALERİSİ (Lucide) ============ */
 const iconwrap=document.getElementById('iconwrap');
@@ -759,6 +863,7 @@ tbtn.onclick=()=>{const l=document.documentElement.getAttribute('data-theme')===
   document.documentElement.setAttribute('data-theme',l?'dark':'light');tbtn.textContent=l?'🌙':'☀️';};
 
 render();
+routeFromHash();
 </script>
 </body>
 </html>
