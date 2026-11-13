@@ -122,20 +122,20 @@
   .acc-a div{padding:0 15px 14px}
 
   /* modal / sheet / drawer overlays live inside stage */
-  .ov{position:absolute;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.25s;z-index:5;border-radius:0}
+  .ov{position:fixed;inset:0;background:rgba(0,0,0,.5);opacity:0;pointer-events:none;transition:.25s;z-index:30;border-radius:0}
   .ov.show{opacity:1;pointer-events:auto}
-  .modal{position:absolute;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);opacity:0;
+  .modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) scale(.94);opacity:0;
     background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;width:230px;
-    transition:.25s;z-index:6;box-shadow:var(--shadow)}
+    transition:.25s;z-index:31;box-shadow:var(--shadow)}
   .modal.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
   .modal h4{margin:0 0 6px;font-size:15px}
   .modal p{margin:0 0 14px;color:var(--muted);font-size:13px}
-  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
-    border-radius:18px 18px 0 0;padding:20px;transform:translateY(100%);transition:.3s cubic-bezier(.3,1,.4,1);z-index:6}
+  .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);
+    border-radius:18px 18px 0 0;padding:20px;transform:translateY(100%);transition:.3s cubic-bezier(.3,1,.4,1);z-index:31}
   .sheet.show{transform:translateY(0)}
   .sheet .grab{width:38px;height:4px;background:var(--line);border-radius:3px;margin:0 auto 14px}
-  .drawer{position:absolute;left:0;top:0;bottom:0;width:62%;max-width:230px;background:var(--surface);
-    border-right:1px solid var(--line);padding:20px;transform:translateX(-100%);transition:.3s cubic-bezier(.3,1,.4,1);z-index:6}
+  .drawer{position:fixed;left:0;top:0;bottom:0;width:62%;max-width:230px;background:var(--surface);
+    border-right:1px solid var(--line);padding:20px;transform:translateX(-100%);transition:.3s cubic-bezier(.3,1,.4,1);z-index:31}
   .drawer.show{transform:translateX(0)}
   .drawer a{display:block;padding:10px 0;color:var(--text);font-size:14px;border-bottom:1px solid var(--line)}
 
@@ -282,11 +282,23 @@
   .hint b{background:#fbbf24;color:#1a1200;padding:8px 16px;border-radius:999px;font-size:13.5px;font-weight:800}
   .hint i{font-size:20px;color:#fbbf24;font-style:normal;animation:bob 1s ease-in-out infinite;line-height:1}
   @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+  .bigstage.overlay-host{overflow:visible}
   .bigstage{background:var(--surface);border:2px solid var(--accent);border-radius:20px;
     padding:42px 20px;min-height:270px;display:grid;place-items:center;position:relative;
     overflow:hidden;box-shadow:0 0 0 6px var(--accent-soft)}
   .page-in .code-toggle{border:1px solid var(--line);border-radius:12px;margin-top:28px}
   .page-in .code-body{border:1px solid var(--line);border-top:0;border-radius:0 0 12px 12px}
+
+  /* push navigation demo */
+  .nav-demo{width:100%;max-width:300px;height:230px;border:1px solid var(--line);border-radius:16px;overflow:hidden;position:relative;background:var(--surface)}
+  .nd-bar{height:48px;display:flex;align-items:center;padding:0 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--line);gap:10px;background:var(--surface);flex:none}
+  .nav-list a{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;border-bottom:1px solid var(--line);font-size:14px;color:var(--text);cursor:pointer}
+  .nav-list a:hover{background:var(--surface-2)}
+  .nav-list a span{color:var(--faint);font-size:18px}
+  .nd-page{position:absolute;inset:0;background:var(--surface);transform:translateX(100%);transition:transform .3s cubic-bezier(.3,1,.4,1);display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.25)}
+  .nd-page.show{transform:translateX(0)}
+  .nd-back{background:none;border:0;color:var(--accent);font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;padding:0}
+  .nd-body{padding:16px;color:var(--muted);font-size:13.5px;line-height:1.6}
 
   footer{max-width:980px;margin:0 auto;padding:30px 18px 50px;color:var(--faint);font-size:12.5px;border-top:1px solid var(--line)}
   .empty{color:var(--faint);text-align:center;padding:50px 0;font-size:14px}
@@ -681,6 +693,45 @@ list.ontouchend = () => { if (list.dataset.ready) refresh(); };`
   const bottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 20;
   if (bottom && !loading) loadMore();  // yeni öğeleri ekle
 };`
+},
+{
+  cat:"Gezinme & Seçim", tr:"Sayfa Geçişi", en:"Push Navigation",
+  desc:"Bir öğeye bas → yeni sayfa sağdan kayarak üstüne gelir, üstte geri tuşu olur. Mobil uygulamalardaki o 'içeri gir / geri çık' hissi — yeni sekme değil, aynı ekranda sayfa değişimi.",
+  feel:"Yeni sayfa sağdan kayarak gelir",
+  demo:`<div class="nav-demo">
+    <div class="nd-bar">Menü</div>
+    <div class="nav-list">
+      <a data-p="Profil">Profil <span>›</span></a>
+      <a data-p="Ayarlar">Ayarlar <span>›</span></a>
+      <a data-p="Hakkında">Hakkında <span>›</span></a>
+    </div>
+    <div class="nd-page">
+      <div class="nd-bar"><button class="nd-back">← Geri</button><span class="nd-title"></span></div>
+      <div class="nd-body">Bu, az önce sağdan kayarak açılan yeni sayfa. "Geri"ye bas — önceki sayfaya kayarak döner.</div>
+    </div>
+  </div>`,
+  init:(r)=>{const pg=r.querySelector('.nd-page'),ttl=r.querySelector('.nd-title');
+    r.querySelectorAll('.nav-list a').forEach(a=>a.onclick=()=>{ttl.textContent=a.dataset.p;pg.classList.add('show');});
+    r.querySelector('.nd-back').onclick=()=>pg.classList.remove('show');},
+  code:`<div class="screen">
+  <ul class="list">
+    <li onclick="open('Profil')">Profil ›</li>
+  </ul>
+  <div class="subpage" id="sub">
+    <button onclick="back()">← Geri</button>
+  </div>
+</div>
+
+// öğeye basınca alt sayfa sağdan kayar:
+function open(t){ sub.classList.add('show'); }
+function back(){ sub.classList.remove('show'); }
+
+.subpage{
+  position:absolute; inset:0;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.3,1,.4,1);
+}
+.subpage.show{ transform:translateX(0); }`
 }
 ];
 
@@ -708,6 +759,7 @@ function render(filter=''){
 }
 
 const HINTS={
+ 'Push Navigation':'Bir menü öğesine bas',
  'Accordion':'Başlığa bas',
  'Modal / Dialog':'Butona bas',
  'Bottom Sheet':'Butona bas',
@@ -777,6 +829,7 @@ function openDemo(d){
       </div>
     </div>`;
   const stage=pageEl.querySelector('.bigstage');curStage=stage;
+  if(/Modal|Bottom Sheet|Drawer/.test(d.en))stage.classList.add('overlay-host');
   try{d.init(stage);}catch(e){}
   wireCode(pageEl,d);
   pageEl.querySelector('.page-back').onclick=()=>history.back();
